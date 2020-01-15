@@ -1,6 +1,7 @@
 package centrifuge
 
 import (
+	"crypto/tls"
 	"time"
 
 	gocentrifuge "github.com/centrifugal/centrifuge-go"
@@ -20,12 +21,17 @@ const (
 	DefaultPrivateChannelPrefix     = "$"
 )
 
+type TlsConfig struct {
+	InsecureSkipVerify bool
+}
+
 // Config contains various client options.
 type Config struct {
 	ReadTimeoutMilliseconds  int
 	WriteTimeoutMilliseconds int
 	PingIntervalMilliseconds int
 	PrivateChannelPrefix     string
+	Tls                      *TlsConfig
 }
 
 // DefaultConfig returns Config with default options.
@@ -45,6 +51,9 @@ func New(u string, config *Config) *Client {
 		WriteTimeout:         time.Duration(config.WriteTimeoutMilliseconds) * time.Millisecond,
 		PingInterval:         time.Duration(config.PingIntervalMilliseconds) * time.Millisecond,
 		PrivateChannelPrefix: config.PrivateChannelPrefix,
+	}
+	if config.Tls != nil {
+		c.TLSConfig = &tls.Config{InsecureSkipVerify: config.Tls.InsecureSkipVerify}
 	}
 	client := &Client{
 		client: gocentrifuge.New(u, c),
